@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+          integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <script type="text/javascript" src="checkBarcode.js"></script>
+    <script type="text/javascript" src="checkPostcode.js"></script>
+    <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.1.0.min.js"></script>
+    <title>postnet</title>
+    <style type="text/css">
+        section {
+            text-align: center;
+        }
+
+        td {
+            text-align: center;
+        }
+
+        .table {
+            width: 700px;
+        }
+
+        .history {
+            margin-top: 100px;
+        }
+
+    </style>
+</head>
+<body>
+<section    >
+    <h1 class="head">POST-NET</h1>
+    <form>
+        <label for="input"><font size="4">Input code</font></label><!-- size最大是6-->
+        <input placeholder="Please input code here" type="text" id="input"/> <br/>
+        <span id="errMessage"></span><br/>
+        <label><font size="4">Result</font></label>&nbsp&nbsp<span id="result">||::::klllllllllllll</span><br/>
+        <input type="radio" value="Barcode to Zipcode" name="transform-method" checked="checked" id="radioOne"/><span>Barcode to Zipcode</span>
+        <input type="radio" value="Zipcode to Barcode" name="transform-method" id="radioTwo"/><span>Zipcode to Barcode<br/></span>
+        <button  id="button" type="button" class="btn btn-success" >ok</button>
+        <br/>
+    </form>
+</section>
+<section class="history">
+    <h2>History</h2>
+    <table class="table" align="center">
+        <tbody>
+        <tr>
+            <td>Code</td>
+            <td>Result</td>
+        </tr>
+        <tr>
+            <td>1898</td>
+            <td>|:::| |::|: |||::</td>
+        </tr>
+        <tr>
+            <td>blah blah</td>
+            <td>blah blah</td>
+        </tr>
+        </tbody>
+    </table>
+</section>
+<script>
+    $(document).ready(function (){
+//        input.val('');           错误！！！浏览器崩溃
+//        $('#radioOne').attr('checked', 'true');
+
+        $('#button').click(function (){
+            let input_code = $('#input').val();   //为什么不能放在事件外面？？？？？
+            let err;
+            if (input_code === '') {
+                $('#errMessage').text('输入不能为空');
+            } else {                                       //根据用户选择的转换方法对输入进行校验
+                // ，并显示错误信息
+                err = ($("input[name='transform-method']:checked").attr('id') ===
+                'radioOne' ? checkBarcodeAndTip(input_code).error : checkPostcodeAndTip(input_code).error);
+                $('#errMessage').text(err);
+            }
+
+            if (err === ``) {                //如果用户的输入没有错误，则向服务器发送请求
+                if ($('#radioOne').is(":checked")) {
+                    $.get('/barcodetopostcode', {code: input_code}, function (data) {
+                        if(res.error === ``){
+                            $("#result").text(data.postCode);
+                        }else{
+                            $('#errMessage').text(data.error);
+                        }
+                    })
+
+                } else {
+                   $.get('/postcodetobarcode', {code: input_code}, function(data) {
+                        $("#result").text(data.barcode);
+                    });
+                }
+            }
+        });
+    });
+</script>
+</body>
+</html>

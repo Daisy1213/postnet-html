@@ -11,20 +11,20 @@ let toPostcode = new transformTwo();
 
 const express = require('express');
 const bodyParser = require('body-parser');
-const cors = require('cors')
 const app = express();
 
 app.use(bodyParser.urlencoded({extend: true}));
-app.use(express.static('public'));
-app.use(cors());
+app.use(express.static('view'));
+// app.use('aaa', express.static('view'));  两个参数时，第一个参数为了屏蔽URI的真实路径
 
-app.post('/postcodetobarcode', (req, res) => {
-    console.log('============')
-    res.send(toBarcode.transformToBarcode(req.body.code));
+app.get('/toPostcode', (req, res) => {
+    console.log(req.query.input)
+    res.send(toPostcode.transformToPostCode(req.query.input));
 });
 
-app.post('/barcodetopostcode', (req, res) => {
-    res.send(toPostcode.transformToPostCode(req.body.code));
+app.get('/toBarcode', (req, res) => {
+    console.log(req.query.input)
+    res.send(toBarcode.transformToBarcode(req.query.input));
 });
 
 app.listen(4000, function () {

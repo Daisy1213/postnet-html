@@ -5,16 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
           integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-    <script type="text/javascript" src="checkBarcode.js"></script>
-    <script type="text/javascript" src="checkPostcode.js"></script>
-    <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.1.0.min.js"></script>
+    <script type="text/javascript" src="checkCode/checkBarcode.js"></script>
+    <script type="text/javascript" src="checkCode/checkPostcode.js"></script>
+    <script type="text/javascript" src="jquery-3.1.0.min.js"></script>
     <title>postnet</title>
     <style type="text/css">
-        section {
-            text-align: center;
+        #input-code{
+            width: 400px;
         }
-
-        td {
+        section {
             text-align: center;
         }
 
@@ -22,80 +21,89 @@
             width: 700px;
         }
 
+        .result{
+            margin-left:0;
+        }
+
         .history {
             margin-top: 100px;
         }
 
+        button {
+            width: 50px;
+        }
     </style>
 </head>
 <body>
-<section    >
+<section>
     <h1 class="head">POST-NET</h1>
     <form>
-        <label for="input"><font size="4">Input code</font></label><!-- size最大是6-->
-        <input placeholder="Please input code here" type="text" id="input"/> <br/>
-        <span id="errMessage"></span><br/>
-        <label><font size="4">Result</font></label>&nbsp&nbsp<span id="result">||::::klllllllllllll</span><br/>
+        <div class="col-md-12">
+            <label for="input"><font size="4">Input code</font></label><!-- size最大是6-->
+            <input placeholder="Please input code here" type="text" id="input-code"/><br/>
+        </div>
+        <span id="err-message"></span><br/>
+        <div class="col-md-12">
+        <div class="result">
+            <label><font size="4">Result</font></label>&nbsp&nbsp<span id="result"></span><br/>
+        </div>
+        </div>
         <input type="radio" value="Barcode to Zipcode" name="transform-method" checked="checked" id="radioOne"/><span>Barcode to Zipcode</span>
-        <input type="radio" value="Zipcode to Barcode" name="transform-method" id="radioTwo"/><span>Zipcode to Barcode<br/></span>
-        <button  id="button" type="button" class="btn btn-success" >ok</button>
+        <input type="radio" value="Zipcode to Barcode" name="transform-method"
+               id="radioTwo"/><span>Zipcode to Barcode<br/></span>
+        <button id="button-ok" type="button" class="btn btn-success">ok</button>
         <br/>
     </form>
 </section>
 <section class="history">
     <h2>History</h2>
     <table class="table" align="center">
-        <tbody>
         <tr>
-            <td>Code</td>
-            <td>Result</td>
+            <td>code</td>
+            <td>result</td>
         </tr>
-        <tr>
-            <td>1898</td>
-            <td>|:::| |::|: |||::</td>
-        </tr>
-        <tr>
-            <td>blah blah</td>
-            <td>blah blah</td>
-        </tr>
-        </tbody>
+
     </table>
 </section>
 <script>
-    $(document).ready(function (){
-//        input.val('');           错误！！！浏览器崩溃
-//        $('#radioOne').attr('checked', 'true');
-
-        $('#button').click(function (){
-            let input_code = $('#input').val();   //为什么不能放在事件外面？？？？？
-            let err;
-            if (input_code === '') {
-                $('#errMessage').text('输入不能为空');
-            } else {                                       //根据用户选择的转换方法对输入进行校验
-                // ，并显示错误信息
-                err = ($("input[name='transform-method']:checked").attr('id') ===
-                'radioOne' ? checkBarcodeAndTip(input_code).error : checkPostcodeAndTip(input_code).error);
-                $('#errMessage').text(err);
+    function request(router, input) {
+        $.get(`/${router}?input=${input}`, function (data) {
+            if (data.error === ``) {
+                $("#result").text(data.code);
+            } else {
+                $('#err-message').text(data.error);
             }
+            //$('.table tr:last').after('<tr><td>' + input + '</td><td>' + data.code + '</td></tr>');         //append是给所选元素的里面追加，after是给所选元素的后边追加
+            $('.table').append('<tr><td>' + input + '</td><td>' + data.code + '</td></tr>');
 
-            if (err === ``) {                //如果用户的输入没有错误，则向服务器发送请求
-                if ($('#radioOne').is(":checked")) {
-                    $.get('/barcodetopostcode', {code: input_code}, function (data) {
-                        if(res.error === ``){
-                            $("#result").text(data.postCode);
-                        }else{
-                            $('#errMessage').text(data.error);
-                        }
-                    })
-
-                } else {
-                   $.get('/postcodetobarcode', {code: input_code}, function(data) {
-                        $("#result").text(data.barcode);
-                    });
-                }
-            }
         });
+    }
+
+    function handleError(err, input) {
+        if (err === ``) {
+            $('#radio-one').is(":checked") ? request('toPostcode', input) : request('toBarcode', input);
+        } else {
+            $('#err-message').text(err);
+        }
+    }
+
+    $('#button-ok').click(function () {
+        let input = $('#input-code').val();
+        let err;
+        if (input === '') {
+            $('#err-message').text('Input can not be empty');
+        } else {                                       //根据用户选择的转换方法对输入进行校验并显示错误信息
+            err = ($("input[name='transform-method']:checked").attr('id') === 'radioOne' ? checkBarcodeAndTip(input).error : checkPostcodeAndTip(input).error);
+            handleError(err, input);
+        }
     });
+
+    $('#input-code').focus(function () {
+        $('#err-message').text('');
+        $('#result').text('');
+
+    });
+
 </script>
 </body>
 </html>

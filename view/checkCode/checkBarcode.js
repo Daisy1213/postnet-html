@@ -15,7 +15,7 @@ function checkBarcodeAndTip(barcode) {
     }
 
     if (flag2 === false) {
-        return {error: `输入的条码digit的数目必须是6或10`, postCode: ``};
+        return {error: `Input number of digits must be 6/10`, postCode: ``};
     }
 
     if (flag && flag1 && flag2) {

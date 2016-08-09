@@ -8,16 +8,17 @@ class PostCodetoBarcodeTransformer {
 
 
         if (flag === false) {
-            return {error: `输入的邮编只能含有数字和-`, barcode: ``};
+            return {error: `输入的邮编只能含有数字和-`, code: ``};
         }
 
         if (flag1 === false) {
-            return {error: `输入的邮编中-的位置必须在第六位`, barcode: ``};
+            return {error: `输入的邮编中-的位置必须在第六位`, code: ``};
         } else {
             let newPostcode = getCodeNumber(postCode);
             let flag2 = isValidCodeLength(newPostcode);
+            console.log(flag2)
             if (flag2 === false) {
-                return {error: `输入的邮编必须是5位或9位数字`, barcode: ``};
+                return {error: `输入的邮编必须是5位或9位数字`, code: ``};
             }
         }
 
@@ -25,7 +26,7 @@ class PostCodetoBarcodeTransformer {
         if (flag && flag2 && flag1 != 'error') {
             let cd = calculateCD(flag1);
             let checkedCode = getCompleteCode(flag1, cd);
-            return {error: ``, barcode: getBarcode(checkedCode, digits, cd)};
+            return {error: ``, code: getBarcode(checkedCode, digits, cd)};
         }
     }
 }
@@ -40,7 +41,7 @@ function isValidCode(code) {
 
 function isValidCodeLength(postCode) {
 
-    return postCode.length === 5 || postCode.length === 10;
+    return postCode.length === 5 || postCode.length === 9;
 }
 
 function getCodeNumber(postCode) {
@@ -56,11 +57,6 @@ function getCodeNumber(postCode) {
     }
 }
 
-/*function isValidCodeLength(postCode) {
- return postCode.length === 5 || postCode.length === 9;
-
- }*/
-
 function calculateCD(codeNumber) {
     let cd = 0;
     let array = codeNumber.split('');
@@ -75,7 +71,6 @@ function calculateCD(codeNumber) {
     }
     return cd;
 }
-
 
 function getCompleteCode(code, cd) {
     return code + cd;
